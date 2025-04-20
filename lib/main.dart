@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_final/screens/home_screen.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_final/models/sign_in/sign_in_model.dart';
 import 'package:flutter_final/service/auth_service.dart';
 import 'package:flutter_final/screens/auth/sign_in_screen.dart';
-
+// Import RaceScreen
 
 void main() {
   runApp(const MyApp());
@@ -27,7 +28,10 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
-        home: const SignInScreen(),
+        home: const SignInScreen(), // Initial screen is SignInScreen
+        routes: {
+          '/RaceScreen': (context) => const RaceScreen(), // Define RaceScreen route
+        },
       ),
     );
   }

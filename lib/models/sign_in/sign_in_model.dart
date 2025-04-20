@@ -6,27 +6,48 @@ class SignInModel extends ChangeNotifier {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   bool _obscurePassword = true;
+  bool _isLoading = false;
 
   SignInModel(this._authService);
 
   bool get obscurePassword => _obscurePassword;
+  bool get isLoading => _isLoading;
 
   void togglePasswordVisibility() {
     _obscurePassword = !_obscurePassword;
     notifyListeners();
   }
 
-  void signIn(BuildContext context) {
-    final email = emailController.text;
+  void signIn(BuildContext context) async {
+    final email = emailController.text.trim();
     final password = passwordController.text;
 
-    // Call AuthService to perform sign-in
-    _authService.signIn(email, password).then((result) {
-      // Handle sign-in result, e.g., navigate to another screen or show error
-    });
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please enter email and password')),
+      );
+      return;
+    }
+
+    _isLoading = true;
+    notifyListeners();
+
+    bool success = await _authService.signIn(email, password);
+
+    _isLoading = false;
+    notifyListeners();
+
+    if (success) {
+      Navigator.pushReplacementNamed(context, '/RaceScreen');
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Invalid email or password')),
+      );
+    }
   }
 
   void forgotPassword() {
-    // Handle forgot password logic
+    // You can show a simple message
+    // Or navigate to another screen
   }
 }
