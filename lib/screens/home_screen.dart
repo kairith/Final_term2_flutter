@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_final/models/competition.dart';
-import 'package:flutter_final/screens/edit_competition.dart';
+
+import 'package:flutter_final/screens/dashboard/admin_dashboard.dart'; // Make sure this file exists
 
 class RaceScreen extends StatefulWidget {
   const RaceScreen({super.key});
@@ -57,7 +58,6 @@ class _RaceScreenState extends State<RaceScreen> {
                   children: [
                     Text(
                       "The Big Race",
-                      
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -79,106 +79,94 @@ class _RaceScreenState extends State<RaceScreen> {
             // Single race event card
             Expanded(
               child: Center(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                  child: Card(
-                    elevation: 10,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          // Circular image placeholder
-                          Container(
-                            width: 80,
-                            height: 80,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: Colors.blue.shade700, width: 2),
-                              color: Colors.grey.shade300,
-                            ),
-                            child: Center(
-                              child: Icon(
-                                competition.type == CompetitionType.running
-                                    ? Icons.directions_run
-                                    : competition.type == CompetitionType.cycling
-                                        ? Icons.directions_bike
-                                        : Icons.pool,
-                                size: 40,
-                                color: Colors.blue,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AdminRaceOverviewScreen(),
+                      ),
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    child: Card(
+                      elevation: 10,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            // Circular image placeholder
+                            Container(
+                              width: 80,
+                              height: 80,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                border: Border.all(color: Colors.blue.shade700, width: 2),
+                                color: Colors.grey.shade300,
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  competition.type == CompetitionType.running
+                                      ? Icons.directions_run
+                                      : competition.type == CompetitionType.cycling
+                                          ? Icons.directions_bike
+                                          : Icons.pool,
+                                  size: 40,
+                                  color: Colors.blue,
+                                ),
                               ),
                             ),
-                          ),
-                          const SizedBox(width: 16),
-                          // Text content
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  competition.name,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue.shade900,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  "${competition.distance} ${competition.type.displayName}",
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    color: Colors.grey.shade700,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Row(
-                                  children: [
-                                    Icon(
-                                      Icons.calendar_today,
-                                      size: 16,
-                                      color: Colors.blue.shade700,
+                            const SizedBox(width: 16),
+                            // Text content
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    competition.name,
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue.shade900,
                                     ),
-                                    const SizedBox(width: 4),
-                                    Text(
-                                      competition.date,
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey.shade700,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    "${competition.distance} ${competition.type.displayName}",
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    children: [
+                                      Icon(
+                                        Icons.calendar_today,
+                                        size: 16,
+                                        color: Colors.blue.shade700,
                                       ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                          // Edit icon
-                          IconButton(
-                            icon: Icon(
-                              Icons.edit,
-                              color: Colors.blue.shade700,
-                            ),
-                            onPressed: () async {
-                              final updatedCompetition = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => EditCompetitionScreen(
-                                    competition: competition,
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        competition.date,
+                                        style: TextStyle(
+                                          fontSize: 14,
+                                          color: Colors.grey.shade700,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ),
-                              );
-                              if (updatedCompetition != null) {
-                                setState(() {
-                                  competition = updatedCompetition;
-                                });
-                              }
-                            },
-                          ),
-                        ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),

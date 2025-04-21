@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_final/screens/edit_competition.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_final/models/competition.dart';
-
+import 'package:flutter_final/screens/timer_screen.dart';
 class AdminRaceOverviewScreen extends StatefulWidget {
   const AdminRaceOverviewScreen({super.key});
 
@@ -21,18 +21,7 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen> with 
       date: "2025-04-20", // Stored as yyyy-MM-dd
       type: CompetitionType.running,
     ),
-    Competition(
-      name: "City Cycle Race",
-      distance: "50km",
-      date: "2025-05-15",
-      type: CompetitionType.cycling,
-    ),
-    Competition(
-      name: "Swim Challenge",
-      distance: "2km",
-      date: "2025-06-10",
-      type: CompetitionType.swimming,
-    ),
+   
   ];
 
   @override
@@ -219,10 +208,8 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen> with 
             ),
             // Timer Tab: Placeholder
             Center(
-              child: Text(
-                "Timer Tab",
-                style: TextStyle(color: Colors.white, fontSize: 20),
-              ),
+              
+               child: TimerWithLap(),
             ),
             // Dashboard Tab: Placeholder
             Center(
