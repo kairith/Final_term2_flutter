@@ -77,7 +77,7 @@ class SignInScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     const Text("Or sign in using Social Media.", style: TextStyle(color: Colors.grey)),
                     const SizedBox(height: 12),
-
+                    
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
