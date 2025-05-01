@@ -2,16 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_final/models/competition.dart';
 
-class EditCompetitionScreen extends StatefulWidget {
-  final Competition competition;
-
-  const EditCompetitionScreen({super.key, required this.competition});
+class CreateCompetitionScreen extends StatefulWidget {
+  const CreateCompetitionScreen({super.key});
 
   @override
-  _EditCompetitionScreenState createState() => _EditCompetitionScreenState();
+  _CreateCompetitionScreenState createState() => _CreateCompetitionScreenState();
 }
 
-class _EditCompetitionScreenState extends State<EditCompetitionScreen> {
+class _CreateCompetitionScreenState extends State<CreateCompetitionScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
   late TextEditingController _distanceController;
@@ -22,24 +20,11 @@ class _EditCompetitionScreenState extends State<EditCompetitionScreen> {
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.competition.name);
-    _distanceController = TextEditingController(text: widget.competition.distance);
+    _nameController = TextEditingController();
+    _distanceController = TextEditingController();
     _dateController = TextEditingController();
-    _selectedType = widget.competition.type;
-
-    // Parse the date, assuming it's in yyyy-MM-dd
-    _selectedDate = _parseDate(widget.competition.date);
-    _dateController.text = DateFormat('MMMM d, yyyy').format(_selectedDate);
-  }
-
-  DateTime _parseDate(String date) {
-    try {
-      // Try parsing yyyy-MM-dd
-      return DateTime.parse(date);
-    } catch (_) {
-      // Fallback to current date if parsing fails
-      return DateTime.now();
-    }
+    _selectedType = CompetitionType.values.first; // Default selection
+    _selectedDate = DateTime.now(); // Default to current date
   }
 
   @override
@@ -60,30 +45,30 @@ class _EditCompetitionScreenState extends State<EditCompetitionScreen> {
     if (picked != null) {
       setState(() {
         _selectedDate = picked;
-        _dateController.text = DateFormat('MMMM d, yyyy').format(picked); // Display as MMMM d, yyyy
+        _dateController.text = DateFormat('MMMM d, yyyy').format(picked);
       });
     }
   }
 
   void _saveCompetition() {
     if (_formKey.currentState!.validate()) {
-      final updatedCompetition = Competition(
+      final newCompetition = Competition(
         name: _nameController.text,
         distance: _distanceController.text,
-        date: DateFormat('yyyy-MM-dd').format(_selectedDate), // Store as yyyy-MM-dd
+        date: DateFormat('yyyy-MM-dd').format(_selectedDate),
         type: _selectedType,
       );
-      Navigator.pop(context, updatedCompetition);
+      Navigator.pop(context, newCompetition);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 132, 192, 241), // Prevent white Scaffold background
+      backgroundColor: const Color.fromARGB(255, 132, 192, 241),
       appBar: AppBar(
         title: const Text(
-          "Edit Race Event",
+          "Create Race Event",
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 24,
@@ -110,13 +95,13 @@ class _EditCompetitionScreenState extends State<EditCompetitionScreen> {
                 key: _formKey,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9), // Semi-transparent white for form background
+                    color: Colors.white.withOpacity(0.9),
                     borderRadius: BorderRadius.circular(20),
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black.withOpacity(0.2),
                         blurRadius: 10,
-                        offset: Offset(0, 5),
+                        offset: const Offset(0, 5),
                       ),
                     ],
                   ),
@@ -239,7 +224,7 @@ class _EditCompetitionScreenState extends State<EditCompetitionScreen> {
                                 padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                               ),
                               child: const Text(
-                                'Save',
+                                'Create',
                                 style: TextStyle(fontSize: 16),
                               ),
                             ),
