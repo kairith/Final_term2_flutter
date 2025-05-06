@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 class TimerWithLap extends StatefulWidget {
@@ -46,9 +45,9 @@ class _TimerWithLapState extends State<TimerWithLap> {
     String twoDigits(int n) => n.toString().padLeft(2, '0');
     String threeDigits(int n) => n.toString().padLeft(3, '0');
     return "${twoDigits(d.inHours)}:"
-        "${twoDigits(d.inMinutes.remainder(60))}:"
-        "${twoDigits(d.inSeconds.remainder(60))}."
-        "${threeDigits(d.inMilliseconds.remainder(1000))}";
+           "${twoDigits(d.inMinutes.remainder(60))}:"
+           "${twoDigits(d.inSeconds.remainder(60))}."
+           "${threeDigits(d.inMilliseconds.remainder(1000))}";
   }
 
   @override
@@ -85,16 +84,34 @@ class _TimerWithLapState extends State<TimerWithLap> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
                     onPressed: _isRunning ? _stopTimer : _startTimer,
                     child: Text(_isRunning ? "Pause" : "Start"),
                   ),
                   SizedBox(width: 10),
                   ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
                     onPressed: _isRunning ? _addLap : null,
                     child: Text("Lap"),
                   ),
                   SizedBox(width: 10),
-                  ElevatedButton(onPressed: _resetTimer, child: Text("Reset")),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    onPressed: _resetTimer,
+                    child: Text("Reset"),
+                  ),
                 ],
               ),
               SizedBox(height: 30),
@@ -102,21 +119,26 @@ class _TimerWithLapState extends State<TimerWithLap> {
                 child: ListView.builder(
                   itemCount: _laps.length,
                   itemBuilder: (context, index) {
-                    return ListTile(
-                      leading: Text(
-                        "Lap ${index + 1}",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize:
-                              18, // Adjust this value for larger font size
-                        ),
+                    return Container(
+                      margin: const EdgeInsets.symmetric(vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(10),
                       ),
-                      title: Text(
-                        _laps[index],
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize:
-                              18, // Adjust this value for larger font size
+                      child: ListTile(
+                        leading: Text(
+                          "Lap ${index + 1}",
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                          ),
+                        ),
+                        title: Text(
+                          _laps[index],
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                          ),
                         ),
                       ),
                     );

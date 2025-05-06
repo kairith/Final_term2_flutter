@@ -90,7 +90,7 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
             Tab(text: "Sport"),
             Tab(text: "Player"),
             Tab(text: "Timer"),
-            Tab(text: "Dashboard"),
+            Tab(text: "board"),
           ],
         ),
       ),
@@ -249,8 +249,8 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
         ),
         // FAB to add race
         Positioned(
-          bottom: 20,
-          right: 20,
+          bottom: 50,
+          right: 30,
           child: FloatingActionButton(
             onPressed: () {
               // Add race functionality here
