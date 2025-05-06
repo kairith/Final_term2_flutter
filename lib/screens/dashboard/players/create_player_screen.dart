@@ -15,26 +15,27 @@ class _CreatePlayerScreenState extends State<CreatePlayerScreen> {
   final TextEditingController bibController = TextEditingController();
   final FirebaseRaceRepository _repository = FirebaseRaceRepository(); // Initialize repository
 
-Future<void> _create() async {
-  if (_formKey.currentState!.validate()) {
-    Player newPlayer = Player(
-      id: '', // Placeholder, will be replaced with the actual ID
-      name: nameController.text,
-      bibNumber: bibController.text,
-    );
-
-    try {
-      final playerId = await _repository.addPlayer(newPlayer); // Save to Firebase and get ID
-      newPlayer = newPlayer.copyWith(id: playerId); // Update the player with the new ID
-      Navigator.pop(context, newPlayer); // Return the new player
-    } catch (e) {
-      // Handle errors (e.g., show a snackbar)
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error saving player: $e')),
+  Future<void> _create() async {
+    if (_formKey.currentState!.validate()) {
+      Player newPlayer = Player(
+        id: '', // Placeholder, will be replaced with the actual ID
+        name: nameController.text,
+        bibNumber: bibController.text,
+        finishTime: null, // No finish time at creation
       );
+
+      try {
+        final playerId = await _repository.addPlayer(newPlayer); // Save to Firebase and get ID
+        newPlayer = newPlayer.copyWith(id: playerId); // Update the player with the new ID
+        Navigator.pop(context, newPlayer); // Return the new player
+      } catch (e) {
+        // Handle errors (e.g., show a snackbar)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving player: $e')),
+        );
+      }
     }
   }
-}
 
   @override
   Widget build(BuildContext context) {

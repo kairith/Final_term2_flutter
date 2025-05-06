@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_final/screens/dashboard/times/timer_screen.dart';
-import 'package:intl/intl.dart';
 import 'package:flutter_final/models/competition.dart';
 import 'package:flutter_final/models/player.dart';
 import 'package:flutter_final/repositories/race_repository.dart';
-import 'package:flutter_final/screens/dashboard/sports/edit_competition.dart';
 import 'package:flutter_final/screens/dashboard/players/edit_player_screen.dart';
 import 'package:flutter_final/screens/dashboard/players/create_player_screen.dart';
+import 'package:flutter_final/screens/dashboard/sports/edit_competition.dart';
+import 'package:intl/intl.dart';
+import 'package:flutter_final/screens/dashboard/times/timer_screen.dart';
 
 class AdminRaceOverviewScreen extends StatefulWidget {
   const AdminRaceOverviewScreen({super.key});
@@ -18,7 +18,7 @@ class AdminRaceOverviewScreen extends StatefulWidget {
 
 class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController; // Declare the TabController
+  late TabController _tabController;
   final FirebaseRaceRepository _repository = FirebaseRaceRepository();
 
   List<Competition> races = [
@@ -35,16 +35,13 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(
-      length: 4,
-      vsync: this,
-    ); // Initialize with the number of tabs
-    _fetchPlayers(); // Fetch players from Firebase
+    _tabController = TabController(length: 4, vsync: this);
+    _fetchPlayers();
   }
 
   @override
   void dispose() {
-    _tabController.dispose(); // Dispose the controller
+    _tabController.dispose();
     super.dispose();
   }
 
@@ -52,7 +49,7 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
     try {
       List<Player> fetchedPlayers = await _repository.getPlayers();
       setState(() {
-        players = fetchedPlayers; // Update the state with fetched players
+        players = fetchedPlayers;
       });
     } catch (e) {
       print('Error fetching players: $e');
@@ -90,7 +87,7 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
             Tab(text: "Sport"),
             Tab(text: "Player"),
             Tab(text: "Timer"),
-            Tab(text: "board"),
+            Tab(text: "Results"),
           ],
         ),
       ),
@@ -107,19 +104,10 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
         child: TabBarView(
           controller: _tabController,
           children: [
-            // Sport Tab
             _buildSportTab(),
-            // Player Tab
             _buildPlayerTab(),
-            // Timer Tab
-            Center(child: TimerWithLap()),
-            // Dashboard Tab
-            const Center(
-              child: Text(
-                "Dashboard Tab",
-                style: TextStyle(color: Colors.white, fontSize: 20),
-              ),
-            ),
+            Center(child: TimerWithLap(onRaceSaved: () {})),
+            _buildResultsTab(),
           ],
         ),
       ),
@@ -263,149 +251,213 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
     );
   }
 
-Widget _buildPlayerTab() {
-  return Stack(
-    children: [
-      SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(10),
-          child: Column(
-            children: List.generate(players.length, (index) {
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 16.0),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: ListTile(
-                    contentPadding: const EdgeInsets.all(16),
-                    title: Text(
-                      players[index].name,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
-                        color: Colors.blue.shade900,
-                      ),
+  Widget _buildPlayerTab() {
+    return Stack(
+      children: [
+        SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(10),
+            child: Column(
+              children: List.generate(players.length, (index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    subtitle: Text(
-                      "Bib Number: ${players[index].bibNumber}",
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                    trailing: SizedBox(
-                      width: 100,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit, color: Colors.blue),
-                            onPressed: () async {
-                              final updatedPlayer = await Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => EditPlayerScreen(
-                                    player: players[index],
-                                  ),
-                                ),
-                              );
-                              if (updatedPlayer != null) {
-                                setState(() {
-                                  players[index] = updatedPlayer; // Update the player in the list
-                                });
-                              }
-                            },
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              showDialog(
-                                context: context,
-                                builder: (context) {
-                                  return AlertDialog(
-                                    title: const Text("Delete Player"),
-                                    content: const Text(
-                                      "Are you sure you want to delete this player?",
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.of(context).pop(); // Close the dialog
-                                        },
-                                        child: const Text("Cancel"),
-                                      ),
-                                      TextButton(
-                                        onPressed: () async {
-                                          Navigator.of(context).pop(); // Close the dialog
-
-                                          try {
-                                            await _repository.deletePlayer(
-                                              players[index].id,
-                                            ); // Delete from Firebase
-                                            setState(() {
-                                              players.removeAt(index); // Remove the player from the list
-                                            });
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text('Player deleted successfully'),
-                                              ),
-                                            );
-                                          } catch (e) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Text('Failed to delete player: $e'),
-                                              ),
-                                            );
-                                          }
-                                        },
-                                        child: const Text(
-                                          "Delete",
-                                          style: TextStyle(color: Colors.red),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      title: Text(
+                        players[index].name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.blue.shade900,
+                        ),
+                      ),
+                      subtitle: Text(
+                        "Bib Number: ${players[index].bibNumber}",
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                      trailing: SizedBox(
+                        width: 100,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit, color: Colors.blue),
+                              onPressed: () async {
+                                final updatedPlayer = await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder:
+                                        (_) => EditPlayerScreen(
+                                          player: players[index],
                                         ),
+                                  ),
+                                );
+                                if (updatedPlayer != null) {
+                                  setState(() {
+                                    players[index] = updatedPlayer;
+                                  });
+                                }
+                              },
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: const Text("Delete Player"),
+                                      content: const Text(
+                                        "Are you sure you want to delete this player?",
                                       ),
-                                    ],
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ],
+                                      actions: [
+                                        TextButton(
+                                          onPressed: () {
+                                            Navigator.of(
+                                              context,
+                                            ).pop(); // Close the dialog
+                                          },
+                                          child: const Text("Cancel"),
+                                        ),
+                                        TextButton(
+                                          onPressed: () async {
+                                            Navigator.of(
+                                              context,
+                                            ).pop(); // Close the dialog
+
+                                            try {
+                                              await _repository.deletePlayer(
+                                                players[index].id,
+                                              );
+                                              setState(() {
+                                                players.removeAt(index);
+                                              });
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Player deleted successfully',
+                                                  ),
+                                                ),
+                                              );
+                                            } catch (e) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Failed to delete player: $e',
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: const Text(
+                                            "Delete",
+                                            style: TextStyle(color: Colors.red),
+                                          ),
+                                        ),
+                                      ],
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              );
-            }),
+                );
+              }),
+            ),
           ),
         ),
-      ),
-      // FAB to add player
-      Positioned(
-        bottom: 50,
-        right: 30,
-        child: FloatingActionButton(
-          onPressed: () async {
-            final newPlayer = await Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const CreatePlayerScreen()),
-            );
-            if (newPlayer != null) {
-              setState(() {
-                players.add(newPlayer); // Add the new player to the list
-              });
-            }
-          },
-          backgroundColor: Colors.blue.shade700,
-          child: const Icon(Icons.add, color: Colors.white),
+        // FAB to add player
+        Positioned(
+          bottom: 50,
+          right: 30,
+          child: FloatingActionButton(
+            onPressed: () async {
+              final newPlayer = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CreatePlayerScreen()),
+              );
+              if (newPlayer != null) {
+                setState(() {
+                  players.add(newPlayer);
+                });
+              }
+            },
+            backgroundColor: Colors.blue.shade700,
+            child: const Icon(Icons.add, color: Colors.white),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildResultsTab() {
+    return SafeArea(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children:
+              players.map((player) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16),
+                      title: Text(
+                        player.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: Colors.blue.shade900,
+                        ),
+                      ),
+                      subtitle: Text(
+                        "Bib Number: ${player.bibNumber}\nFinish Time: ${player.finishTime != null ? _formatDuration(player.finishTime!) : "N/A"}",
+                        style: TextStyle(color: Colors.grey.shade600),
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
         ),
       ),
-    ],
-  );
+    );
+  }
+
+  String _formatDuration(Duration? duration) {
+    if (duration == null) return "N/A";
+    String twoDigits(int n) => n.toString().padLeft(2, '0');
+    String threeDigits(int n) => n.toString().padLeft(3, '0');
+    return "${twoDigits(duration.inHours)}:${twoDigits(duration.inMinutes.remainder(60))}:${twoDigits(duration.inSeconds.remainder(60))}.${threeDigits(duration.inMilliseconds.remainder(1000))}";
+  }
 }
-    }
