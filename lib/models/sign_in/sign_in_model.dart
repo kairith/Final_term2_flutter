@@ -31,9 +31,7 @@ class SignInModel extends ChangeNotifier {
 
     _isLoading = true;
     notifyListeners();
-
     bool success = await _authService.signIn(email, password);
-
     _isLoading = false;
     notifyListeners();
 
@@ -45,9 +43,7 @@ class SignInModel extends ChangeNotifier {
       );
     }
   }
-
   void forgotPassword() {
-    // You can show a simple message
-    // Or navigate to another screen
+    
   }
 }

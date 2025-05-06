@@ -1,14 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_final/screens/dashboard/times/timer_screen.dart';
 import 'package:intl/intl.dart';
-
 import 'package:flutter_final/models/competition.dart';
 import 'package:flutter_final/models/player.dart';
-
+import 'package:flutter_final/repositories/race_repository.dart';
 import 'package:flutter_final/screens/dashboard/sports/edit_competition.dart';
-import 'package:flutter_final/screens/dashboard/times/timer_screen.dart';
 import 'package:flutter_final/screens/dashboard/players/edit_player_screen.dart';
 import 'package:flutter_final/screens/dashboard/players/create_player_screen.dart';
-import 'package:flutter_final/screens/dashboard/sports/create_competition.dart';
 
 class AdminRaceOverviewScreen extends StatefulWidget {
   const AdminRaceOverviewScreen({super.key});
@@ -20,7 +18,8 @@ class AdminRaceOverviewScreen extends StatefulWidget {
 
 class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
     with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+  late TabController _tabController; // Declare the TabController
+  final FirebaseRaceRepository _repository = FirebaseRaceRepository();
 
   List<Competition> races = [
     Competition(
@@ -31,22 +30,33 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
     ),
   ];
 
-  List<Player> players = [
-    Player(bibNumber: "001", name: "vine"),
-    Player(bibNumber: "002", name: "ronan"),
-    Player(bibNumber: "003", name: "Mike"),
-  ];
+  List<Player> players = [];
 
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(
+      length: 4,
+      vsync: this,
+    ); // Initialize with the number of tabs
+    _fetchPlayers(); // Fetch players from Firebase
   }
 
   @override
   void dispose() {
-    _tabController.dispose();
+    _tabController.dispose(); // Dispose the controller
     super.dispose();
+  }
+
+  Future<void> _fetchPlayers() async {
+    try {
+      List<Player> fetchedPlayers = await _repository.getPlayers();
+      setState(() {
+        players = fetchedPlayers; // Update the state with fetched players
+      });
+    } catch (e) {
+      print('Error fetching players: $e');
+    }
   }
 
   String _formatDate(String date) {
@@ -77,8 +87,8 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
           unselectedLabelColor: Colors.white.withOpacity(0.6),
           indicatorColor: Colors.white,
           tabs: const [
-            Tab(text: "sport"),
-            Tab(text: "player"),
+            Tab(text: "Sport"),
+            Tab(text: "Player"),
             Tab(text: "Timer"),
             Tab(text: "Dashboard"),
           ],
@@ -98,263 +108,11 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
           controller: _tabController,
           children: [
             // Sport Tab
-            Stack(
-              children: [
-                SafeArea(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      children:
-                          races.map((race) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 16.0),
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withOpacity(0.2),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 5),
-                                    ),
-                                  ],
-                                ),
-                                child: ListTile(
-                                  leading: Container(
-                                    width: 50,
-                                    height: 50,
-                                    decoration: BoxDecoration(
-                                      shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color: Colors.blue.shade700,
-                                        width: 2,
-                                      ),
-                                      color: Colors.grey.shade300,
-                                    ),
-                                    child: Center(
-                                      child: Icon(
-                                        race.type == CompetitionType.running
-                                            ? Icons.directions_run
-                                            : race.type ==
-                                                CompetitionType.cycling
-                                            ? Icons.directions_bike
-                                            : Icons.pool,
-                                        size: 30,
-                                        color: Colors.blue.shade700,
-                                      ),
-                                    ),
-                                  ),
-                                  title: Text(
-                                    "Race name: ${race.name}",
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.blue.shade900,
-                                    ),
-                                  ),
-                                  subtitle: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Distance: ${race.distance}",
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade700,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        "Date: ${_formatDate(race.date)}",
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          color: Colors.grey.shade700,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: Icon(
-                                          Icons.edit,
-                                          color: Colors.blue.shade700,
-                                        ),
-                                        onPressed: () async {
-                                          final updatedRace =
-                                              await Navigator.push(
-                                                context,
-                                                MaterialPageRoute(
-                                                  builder:
-                                                      (context) =>
-                                                          EditCompetitionScreen(
-                                                            competition: race,
-                                                          ),
-                                                ),
-                                              );
-                                          if (updatedRace != null) {
-                                            setState(() {
-                                              int index = races.indexOf(race);
-                                              races[index] = updatedRace;
-                                            });
-                                          }
-                                        },
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.delete,
-                                          color: Colors.red,
-                                        ),
-                                        onPressed: () {
-                                          setState(() {
-                                            races.remove(race);
-                                          });
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            );
-                          }).toList(),
-                    ),
-                  ),
-                ),
-                // FAB to add race
-                Positioned(
-                  bottom: 20,
-                  right: 20,
-                  child: FloatingActionButton(
-                    onPressed: () async {
-                      final newRace = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CreateCompetitionScreen(),
-                        ),
-                      );
-                      if (newRace != null) {
-                        setState(() {
-                          races.add(newRace);
-                        });
-                      }
-                    },
-                    backgroundColor: Colors.white,
-                    child: const Icon(Icons.add, color: Colors.black),
-                  ),
-                ),
-              ],
-            ),
-
+            _buildSportTab(),
             // Player Tab
-            Stack(
-              children: [
-                SafeArea(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: List.generate(players.length, (index) {
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 16.0),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withOpacity(0.2),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 5),
-                                ),
-                              ],
-                            ),
-                            child: ListTile(
-                              title: Text(
-                                "Name: ${players[index].name}",
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blue.shade900,
-                                ),
-                              ),
-                              subtitle: Text(
-                                "Number: ${players[index].bibNumber}",
-                              ),
-                              trailing: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.edit,
-                                      color: Colors.blue,
-                                    ),
-                                    onPressed: () async {
-                                      final updatedPlayer =
-                                          await Navigator.push(
-                                            context,
-                                            MaterialPageRoute(
-                                              builder:
-                                                  (_) => EditPlayerScreen(
-                                                    player: players[index],
-                                                  ),
-                                            ),
-                                          );
-                                      if (updatedPlayer != null) {
-                                        setState(() {
-                                          players[index] = updatedPlayer;
-                                        });
-                                      }
-                                    },
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.delete,
-                                      color: Colors.red,
-                                    ),
-                                    onPressed: () {
-                                      setState(() {
-                                        players.removeAt(index);
-                                      });
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        );
-                      }),
-                    ),
-                  ),
-                ),
-
-                // FAB to add player
-                Positioned(
-                  bottom: 20,
-                  right: 20,
-                  child: FloatingActionButton(
-                    onPressed: () async {
-                      final newPlayer = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const CreatePlayerScreen(),
-                        ),
-                      );
-                      if (newPlayer != null) {
-                        setState(() {
-                          players.add(newPlayer);
-                        });
-                      }
-                    },
-                    backgroundColor: Colors.white,
-                    child: const Icon(Icons.add, color: Colors.black),
-                  ),
-                ),
-              ],
-            ),
-
+            _buildPlayerTab(),
             // Timer Tab
             Center(child: TimerWithLap()),
-
             // Dashboard Tab
             const Center(
               child: Text(
@@ -367,4 +125,287 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
       ),
     );
   }
+
+  Widget _buildSportTab() {
+    return Stack(
+      children: [
+        SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              children:
+                  races.map((race) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(20),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.2),
+                              blurRadius: 10,
+                              offset: const Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: ListTile(
+                          leading: Container(
+                            width: 50,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: Colors.blue.shade700,
+                                width: 2,
+                              ),
+                              color: Colors.grey.shade300,
+                            ),
+                            child: Center(
+                              child: Icon(
+                                race.type == CompetitionType.running
+                                    ? Icons.directions_run
+                                    : race.type == CompetitionType.cycling
+                                    ? Icons.directions_bike
+                                    : Icons.pool,
+                                size: 30,
+                                color: Colors.blue.shade700,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            "Race name: ${race.name}",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue.shade900,
+                            ),
+                          ),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Distance: ${race.distance}",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                "Date: ${_formatDate(race.date)}",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: Colors.grey.shade700,
+                                ),
+                              ),
+                            ],
+                          ),
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: Icon(
+                                  Icons.edit,
+                                  color: Colors.blue.shade700,
+                                ),
+                                onPressed: () async {
+                                  final updatedRace = await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder:
+                                          (context) => EditCompetitionScreen(
+                                            competition: race,
+                                          ),
+                                    ),
+                                  );
+                                  if (updatedRace != null) {
+                                    setState(() {
+                                      int index = races.indexOf(race);
+                                      races[index] = updatedRace;
+                                    });
+                                  }
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () {
+                                  setState(() {
+                                    races.remove(race);
+                                  });
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+            ),
+          ),
+        ),
+        // FAB to add race
+        Positioned(
+          bottom: 20,
+          right: 20,
+          child: FloatingActionButton(
+            onPressed: () {
+              // Add race functionality here
+            },
+            backgroundColor: Colors.white,
+            child: const Icon(Icons.add, color: Colors.black),
+          ),
+        ),
+      ],
+    );
+  }
+
+Widget _buildPlayerTab() {
+  return Stack(
+    children: [
+      SafeArea(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(10),
+          child: Column(
+            children: List.generate(players.length, (index) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    title: Text(
+                      players[index].name,
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                        color: Colors.blue.shade900,
+                      ),
+                    ),
+                    subtitle: Text(
+                      "Bib Number: ${players[index].bibNumber}",
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                    trailing: SizedBox(
+                      width: 100,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit, color: Colors.blue),
+                            onPressed: () async {
+                              final updatedPlayer = await Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => EditPlayerScreen(
+                                    player: players[index],
+                                  ),
+                                ),
+                              );
+                              if (updatedPlayer != null) {
+                                setState(() {
+                                  players[index] = updatedPlayer; // Update the player in the list
+                                });
+                              }
+                            },
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete, color: Colors.red),
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  return AlertDialog(
+                                    title: const Text("Delete Player"),
+                                    content: const Text(
+                                      "Are you sure you want to delete this player?",
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () {
+                                          Navigator.of(context).pop(); // Close the dialog
+                                        },
+                                        child: const Text("Cancel"),
+                                      ),
+                                      TextButton(
+                                        onPressed: () async {
+                                          Navigator.of(context).pop(); // Close the dialog
+
+                                          try {
+                                            await _repository.deletePlayer(
+                                              players[index].id,
+                                            ); // Delete from Firebase
+                                            setState(() {
+                                              players.removeAt(index); // Remove the player from the list
+                                            });
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Player deleted successfully'),
+                                              ),
+                                            );
+                                          } catch (e) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Failed to delete player: $e'),
+                                              ),
+                                            );
+                                          }
+                                        },
+                                        child: const Text(
+                                          "Delete",
+                                          style: TextStyle(color: Colors.red),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }),
+          ),
+        ),
+      ),
+      // FAB to add player
+      Positioned(
+        bottom: 50,
+        right: 30,
+        child: FloatingActionButton(
+          onPressed: () async {
+            final newPlayer = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const CreatePlayerScreen()),
+            );
+            if (newPlayer != null) {
+              setState(() {
+                players.add(newPlayer); // Add the new player to the list
+              });
+            }
+          },
+          backgroundColor: Colors.blue.shade700,
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
+      ),
+    ],
+  );
 }
+    }
