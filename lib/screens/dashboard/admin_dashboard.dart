@@ -256,6 +256,7 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
       children: [
         SafeArea(
           child: SingleChildScrollView(
+            physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.all(10),
             child: Column(
               children: List.generate(players.length, (index) {
@@ -411,48 +412,76 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
   }
 
   Widget _buildResultsTab() {
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children:
-              players.map((player) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+  return SafeArea(
+    child: SingleChildScrollView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          if (players.isNotEmpty) // Conditionally show congratulations
+            const Padding(
+              padding: EdgeInsets.only(bottom: 16.0),
+              child: Text(
+                "Congratulations",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 255, 255, 255),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          if (players.isEmpty) // Show message if no players
+            const Padding(
+              padding: EdgeInsets.only(bottom: 16.0),
+              child: Text(
+                "No players have finished yet.",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 255, 255, 255),
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ...players.map((player) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 16.0),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
                     ),
-                    child: ListTile(
-                      contentPadding: const EdgeInsets.all(16),
-                      title: Text(
-                        player.name,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
-                          color: Colors.blue.shade900,
-                        ),
-                      ),
-                      subtitle: Text(
-                        "Bib Number: ${player.bibNumber}\nFinish Time: ${player.finishTime != null ? _formatDuration(player.finishTime!) : "N/A"}",
-                        style: TextStyle(color: Colors.grey.shade600),
-                      ),
+                  ],
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(16),
+                  title: Text(
+                    player.name,
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: Colors.blue.shade900,
                     ),
                   ),
-                );
-              }).toList(),
-        ),
+                  subtitle: Text(
+                    "Bib Number: ${player.bibNumber}\nFinish Time: ${player.finishTime != null ? _formatDuration(player.finishTime!) : "N/A"}",
+                    style: TextStyle(color: Colors.grey.shade600),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   String _formatDuration(Duration? duration) {
     if (duration == null) return "N/A";
