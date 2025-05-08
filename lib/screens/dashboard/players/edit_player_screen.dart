@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_final/models/player.dart';
+import 'package:flutter_final/repositories/race_repository.dart'; // Import your repository
 
 class EditPlayerScreen extends StatefulWidget {
   final Player player;
@@ -14,6 +15,7 @@ class _EditPlayerScreenState extends State<EditPlayerScreen> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController nameController;
   late TextEditingController bibController;
+  final FirebaseRaceRepository _repository = FirebaseRaceRepository();
 
   @override
   void initState() {
@@ -29,14 +31,25 @@ class _EditPlayerScreenState extends State<EditPlayerScreen> {
     super.dispose();
   }
 
-  void _save() {
-    if (_formKey.currentState!.validate()) {
-      Navigator.pop(
-        context,
-        Player(name: nameController.text, bibNumber: bibController.text),
+void _save() async {
+  if (_formKey.currentState!.validate()) {
+    Player updatedPlayer = Player(
+      id: widget.player.id, // Include the existing ID
+      name: nameController.text,
+      bibNumber: bibController.text,
+    );
+
+    try {
+      await _repository.updatePlayer(updatedPlayer.id, updatedPlayer); // Update Firebase
+      Navigator.pop(context, updatedPlayer); // Return the updated player
+    } catch (e) {
+      // Handle error
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update player: $e')),
       );
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
@@ -45,10 +58,7 @@ class _EditPlayerScreenState extends State<EditPlayerScreen> {
       appBar: AppBar(
         title: const Text(
           "Edit Player",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 24),
         ),
         centerTitle: true,
         backgroundColor: Colors.blue.shade700,

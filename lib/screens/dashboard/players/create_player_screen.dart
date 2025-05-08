@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_final/models/player.dart';
+import 'package:flutter_final/repositories/race_repository.dart'; // Import your repository
 
 class CreatePlayerScreen extends StatefulWidget {
   const CreatePlayerScreen({super.key});
@@ -12,16 +13,27 @@ class _CreatePlayerScreenState extends State<CreatePlayerScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController bibController = TextEditingController();
+  final FirebaseRaceRepository _repository = FirebaseRaceRepository(); // Initialize repository
 
-  void _create() {
+  Future<void> _create() async {
     if (_formKey.currentState!.validate()) {
-      Navigator.pop(
-        context,
-        Player(
-          name: nameController.text,
-          bibNumber: bibController.text,
-        ),
+      Player newPlayer = Player(
+        id: '', // Placeholder, will be replaced with the actual ID
+        name: nameController.text,
+        bibNumber: bibController.text,
+        finishTime: null, // No finish time at creation
       );
+
+      try {
+        final playerId = await _repository.addPlayer(newPlayer); // Save to Firebase and get ID
+        newPlayer = newPlayer.copyWith(id: playerId); // Update the player with the new ID
+        Navigator.pop(context, newPlayer); // Return the new player
+      } catch (e) {
+        // Handle errors (e.g., show a snackbar)
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error saving player: $e')),
+        );
+      }
     }
   }
 
