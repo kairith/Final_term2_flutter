@@ -4,13 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_final/models/player.dart';
 import 'package:http/http.dart' as http;
 
-
-
 class TimerWithLap extends StatefulWidget {
   final VoidCallback onRaceSaved;
-
   const TimerWithLap({Key? key, required this.onRaceSaved}) : super(key: key);
-
   @override
   _TimerWithLapState createState() => _TimerWithLapState();
 }
