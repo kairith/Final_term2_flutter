@@ -4,10 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_final/models/player.dart';
 import 'package:http/http.dart' as http;
 
-class TimerWithLap extends StatefulWidget {
-  final VoidCallback onRaceSaved; // Callback to notify when race is saved
 
-  TimerWithLap({required this.onRaceSaved}); // Constructor
+
+class TimerWithLap extends StatefulWidget {
+  final VoidCallback onRaceSaved;
+
+  const TimerWithLap({Key? key, required this.onRaceSaved}) : super(key: key);
 
   @override
   _TimerWithLapState createState() => _TimerWithLapState();
@@ -15,14 +17,12 @@ class TimerWithLap extends StatefulWidget {
 
 class _TimerWithLapState extends State<TimerWithLap> {
   late Timer _timer;
-  Duration _duration = Duration();
+  Duration _duration = const Duration();
   bool _isRunning = false;
-  final List<Map<String, String>> _laps = [];
+  final List<Duration> _unassignedLaps = [];
+  final Map<Duration, String?> _lapAssignments = {};
   List<Player> _players = [];
-  String? _selectedBib;
-
-  // To keep track of lap times for each player
-  Map<String, List<Duration>> playerLapTimes = {};
+  Set<String> _assignedBibs = {}; // Track assigned bib numbers
 
   static const String baseUrl = 'https://sporttrackingapp-default-rtdb.asia-southeast1.firebasedatabase.app';
 
@@ -34,24 +34,30 @@ class _TimerWithLapState extends State<TimerWithLap> {
 
   Future<void> _fetchPlayers() async {
     final uri = Uri.parse('$baseUrl/players.json');
-    final response = await http.get(uri);
+    try {
+      final response = await http.get(uri);
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body) as Map<String, dynamic>;
-      setState(() {
-        _players = data.entries.map((entry) {
-          return Player.fromMap(entry.key, entry.value);
-        }).toList();
-      });
-    } else {
-      throw Exception('Failed to fetch players: ${response.body}');
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body) as Map<String, dynamic>;
+        setState(() {
+          _players = data.entries.map((entry) {
+            return Player.fromMap(entry.key, entry.value);
+          }).toList();
+        });
+      } else {
+        print('Failed to fetch players: ${response.statusCode}, ${response.body}');
+        throw Exception('Failed to fetch players: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching players: $e');
+      throw Exception('Error fetching players: $e');
     }
   }
 
   void _startTimer() {
-    _timer = Timer.periodic(Duration(milliseconds: 10), (timer) {
+    _timer = Timer.periodic(const Duration(milliseconds: 10), (timer) {
       setState(() {
-        _duration += Duration(milliseconds: 10);
+        _duration += const Duration(milliseconds: 10);
       });
     });
     _isRunning = true;
@@ -65,53 +71,120 @@ class _TimerWithLapState extends State<TimerWithLap> {
   void _resetTimer() {
     if (_isRunning) _timer.cancel();
     setState(() {
-      _duration = Duration();
-      _laps.clear();
-      playerLapTimes.clear(); // Reset player lap times
+      _duration = const Duration();
+      _unassignedLaps.clear();
+      _lapAssignments.clear();
       _isRunning = false;
     });
   }
 
-  void _addLap(String selectedBib) {
+  void _addLap() {
     setState(() {
-      _laps.add({
-        'time': _formatDuration(_duration),
-        'bib': selectedBib,
-      });
+      _unassignedLaps.add(_duration);
+      _lapAssignments[_duration] = null;
+    });
+  }
 
-      // Add the lap time to the player's lap times
-      playerLapTimes[selectedBib] ??= [];
-      playerLapTimes[selectedBib]!.add(_duration); // Store the lap time
+  Future<void> _assignBib(Duration lapTime) async {
+    String? selectedBib;
 
-      _selectedBib = null; // Reset selection after adding lap
+    await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Assign Bib Number"),
+          content: DropdownButtonFormField<String>(
+            hint: const Text("Select a player"),
+            value: selectedBib,
+            items: _players
+                .where((player) => !_assignedBibs.contains(player.bibNumber)) // Filter out already assigned bibs
+                .map((player) {
+              return DropdownMenuItem<String>(
+                value: player.bibNumber,
+                child: Text(player.bibNumber),
+              );
+            }).toList(),
+            onChanged: (value) {
+              selectedBib = value;
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text("Cancel"),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop(selectedBib);
+              },
+              child: const Text("Assign"),
+            ),
+          ],
+        );
+      },
+    ).then((value) {
+      if (value != null) {
+        setState(() {
+          _lapAssignments[lapTime] = value;
+          _assignedBibs.add(value);
+        });
+      }
     });
   }
 
   Future<void> _saveRace() async {
-  for (var bib in playerLapTimes.keys) {
-    final player = _players.firstWhere((player) => player.bibNumber == bib);
-    
-    // Save each player's finish time based on their individual laps
-    for (var lapTime in playerLapTimes[bib]!) {
-      await _updatePlayerFinishTime(player, lapTime);
+    //Clear assigned bibs before saving
+    _assignedBibs.clear();
+
+    final Map<String, List<Duration>> playerLaps = {};
+
+    for (var entry in _lapAssignments.entries) {
+      if (entry.value != null) {
+        playerLaps.putIfAbsent(entry.value!, () => []);
+        playerLaps[entry.value!]!.add(entry.key);
+        _assignedBibs.add(entry.value!); // Track assigned bibs
+      }
     }
+
+    for (var bib in playerLaps.keys) {
+      try {
+        final player = _players.firstWhere((player) => player.bibNumber == bib);
+        for (var lapTime in playerLaps[bib]!) {
+          await _updatePlayerFinishTime(player, lapTime);
+        }
+      } catch (e) {
+        print('Error finding or updating player: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error saving race.  Could not find player with bib number $bib")),
+        );
+        return;
+      }
+    }
+
+    widget.onRaceSaved();
+    await _fetchPlayers();
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text("Race saved successfully!")),
+    );
   }
-
-  // Call the callback to notify that the race has been saved
-  widget.onRaceSaved();
-  // Refresh player data
-  await _fetchPlayers();
-
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text("Race saved successfully!")),
-  );
-}
 
   Future<void> _updatePlayerFinishTime(Player player, Duration finishTime) async {
     final updatedPlayer = player.copyWith(finishTime: finishTime);
     final uri = Uri.parse('$baseUrl/players/${player.id}.json');
-
-    await http.put(uri, body: json.encode(updatedPlayer.toMap()));
+    try {
+      final response = await http.put(
+        uri,
+        body: json.encode(updatedPlayer.toMap()),
+      );
+      if (response.statusCode != 200) {
+        print('Failed to update player: ${response.statusCode}, ${response.body}');
+        throw Exception('Failed to update player');
+      }
+    } catch (e) {
+      print('Error updating player: $e');
+      throw Exception('Error updating player: $e');
+    }
   }
 
   String _formatDuration(Duration d) {
@@ -124,54 +197,6 @@ class _TimerWithLapState extends State<TimerWithLap> {
   void dispose() {
     if (_isRunning) _timer.cancel();
     super.dispose();
-  }
-
-  void _showLapDialog() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text("Select Bib Number"),
-          content: DropdownButtonFormField<String>(
-            hint: Text("Select a player"),
-            value: _selectedBib,
-            items: _getAvailableBibs().map((player) {
-              return DropdownMenuItem<String>(
-                value: player.bibNumber,
-                child: Text(player.bibNumber),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedBib = value;
-              });
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close dialog
-              },
-              child: Text("Cancel"),
-            ),
-            TextButton(
-              onPressed: () {
-                if (_selectedBib != null) {
-                  _addLap(_selectedBib!);
-                  Navigator.of(context).pop(); // Close dialog
-                }
-              },
-              child: Text("Add Lap"),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  List<Player> _getAvailableBibs() {
-    final selectedBibs = _laps.map((lap) => lap['bib']).toSet();
-    return _players.where((player) => !selectedBibs.contains(player.bibNumber)).toList();
   }
 
   @override
@@ -191,13 +216,13 @@ class _TimerWithLapState extends State<TimerWithLap> {
             children: [
               Text(
                 _formatDuration(_duration),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 48,
                   fontWeight: FontWeight.bold,
                   color: Colors.white,
                 ),
               ),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -210,17 +235,17 @@ class _TimerWithLapState extends State<TimerWithLap> {
                     onPressed: _isRunning ? _stopTimer : _startTimer,
                     child: Text(_isRunning ? "Pause" : "Start"),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    onPressed: _isRunning ? _showLapDialog : null,
-                    child: Text("Lap"),
+                    onPressed: _isRunning ? _addLap : null,
+                    child: const Text("Lap"),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
@@ -228,25 +253,28 @@ class _TimerWithLapState extends State<TimerWithLap> {
                       ),
                     ),
                     onPressed: _resetTimer,
-                    child: Text("Reset"),
+                    child: const Text("Reset"),
                   ),
-                  SizedBox(width: 10),
+                  const SizedBox(width: 10),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(30),
                       ),
                     ),
-                    onPressed: _saveRace,
-                    child: Text("Save"),
+                    onPressed: _lapAssignments.isNotEmpty ? _saveRace : null,
+                    child: const Text("Save"),
                   ),
                 ],
               ),
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
               Expanded(
                 child: ListView.builder(
-                  itemCount: _laps.length,
+                  itemCount: _unassignedLaps.length,
                   itemBuilder: (context, index) {
+                    final lapTime = _unassignedLaps[index];
+                    final bib = _lapAssignments[lapTime];
+
                     return Container(
                       margin: const EdgeInsets.symmetric(vertical: 5),
                       decoration: BoxDecoration(
@@ -256,18 +284,30 @@ class _TimerWithLapState extends State<TimerWithLap> {
                       child: ListTile(
                         leading: Text(
                           "Lap ${index + 1}",
-                          style: TextStyle(
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                           ),
                         ),
                         title: Text(
-                          "${_laps[index]['time']} - Bib: ${_laps[index]['bib']}",
-                          style: TextStyle(
+                          _formatDuration(lapTime),
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                           ),
                         ),
+                        trailing: bib == null
+                            ? IconButton(
+                                icon: const Icon(Icons.person_add, color: Colors.white),
+                                onPressed: () => _assignBib(lapTime),
+                              )
+                            : Text(
+                                "Bib: $bib",
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                ),
+                              ),
                       ),
                     );
                   },
