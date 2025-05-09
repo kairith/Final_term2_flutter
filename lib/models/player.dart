@@ -18,7 +18,6 @@ class Player {
       'finishTime': finishTime?.inMilliseconds, // Save as milliseconds for easier storage
     };
   }
-
   Player copyWith({
     String? id,
     String? name,
