@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_final/models/player.dart';
-import 'package:flutter_final/repositories/race_repository.dart'; // Import your repository
+import 'package:flutter_final/repositories/race_repository.dart';
 
 class CreatePlayerScreen extends StatefulWidget {
   const CreatePlayerScreen({super.key});
@@ -13,23 +13,22 @@ class _CreatePlayerScreenState extends State<CreatePlayerScreen> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController bibController = TextEditingController();
-  final FirebaseRaceRepository _repository = FirebaseRaceRepository(); // Initialize repository
+  final FirebaseRaceRepository _repository = FirebaseRaceRepository();
 
   Future<void> _create() async {
     if (_formKey.currentState!.validate()) {
       Player newPlayer = Player(
-        id: '', // Placeholder, will be replaced with the actual ID
+        id: '',
         name: nameController.text,
         bibNumber: bibController.text,
-        finishTime: null, // No finish time at creation
+        finishTime: null,
       );
 
       try {
-        final playerId = await _repository.addPlayer(newPlayer); // Save to Firebase and get ID
-        newPlayer = newPlayer.copyWith(id: playerId); // Update the player with the new ID
-        Navigator.pop(context, newPlayer); // Return the new player
+        final playerId = await _repository.addPlayer(newPlayer);
+        newPlayer = newPlayer.copyWith(id: playerId);
+        Navigator.pop(context, newPlayer);
       } catch (e) {
-        // Handle errors (e.g., show a snackbar)
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error saving player: $e')),
         );
@@ -59,88 +58,86 @@ class _CreatePlayerScreenState extends State<CreatePlayerScreen> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [Colors.blue.shade700, Color.fromARGB(255, 132, 192, 241)],
+            colors: [
+              Colors.blue.shade700,
+              const Color.fromARGB(255, 132, 192, 241)
+            ],
           ),
         ),
         child: SafeArea(
           child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Form(
-                key: _formKey,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.9),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withOpacity(0.2),
-                        blurRadius: 10,
-                        offset: const Offset(0, 5),
-                      ),
-                    ],
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        // Player Name field
-                        TextFormField(
-                          controller: nameController,
-                          decoration: InputDecoration(
-                            labelText: 'Player Name',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            prefixIcon: Icon(Icons.person, color: Colors.blue.shade700),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a player name';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 16),
-                        // Bib Number field
-                        TextFormField(
-                          controller: bibController,
-                          decoration: InputDecoration(
-                            labelText: 'Bib Number',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            prefixIcon: Icon(Icons.numbers, color: Colors.blue.shade700),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return 'Please enter a bib number';
-                            }
-                            return null;
-                          },
-                        ),
-                        const SizedBox(height: 24),
-                        // Add Player button
-                        ElevatedButton(
-                          onPressed: _create,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue.shade700,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          ),
-                          child: const Text(
-                            'Add Player',
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ],
+            padding: const EdgeInsets.all(16),
+            child: Form(
+              key: _formKey,
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
                     ),
-                  ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    TextFormField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        labelText: 'Player Name',
+                        prefixIcon: Icon(Icons.person, color: Colors.blue.shade700),
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a player name';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 20),
+                    TextFormField(
+                      controller: bibController,
+                      decoration: InputDecoration(
+                        labelText: 'Bib Number',
+                        prefixIcon: Icon(Icons.numbers, color: Colors.blue.shade700),
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter a bib number';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 30),
+                    ElevatedButton.icon(
+                      onPressed: _create,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue.shade700,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        textStyle: const TextStyle(fontSize: 16),
+                      ),
+                      icon: const Icon(Icons.add_circle_outline),
+                      label: const Text('Add Player'),
+                    ),
+                  ],
                 ),
               ),
             ),
