@@ -8,101 +8,134 @@ class SignInScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeColor = const Color.fromARGB(255, 68, 89, 255);
+
     return Scaffold(
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24),
+            padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
             child: Consumer<SignInModel>(
               builder: (context, model, _) {
                 return Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Image.asset('assets/images/logo-sport.png', height: 200, width: 200),
-                    const SizedBox(height: 24),
-                    const Text('Sign In', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 8),
-                    const Text('Please sign in to your account first', style: TextStyle(fontSize: 14, color: Colors.grey)),
+                    Image.asset('assets/images/logo-sport.png', height: 140),
                     const SizedBox(height: 24),
 
+                    const Text(
+                      'Welcome Back',
+                      style: TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Sign in to your account',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Email Field
                     TextField(
                       controller: model.emailController,
                       keyboardType: TextInputType.emailAddress,
                       decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.email_outlined),
                         hintText: 'Email',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                         filled: true,
                         fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 16),
 
+                    // Password Field
                     TextField(
                       controller: model.passwordController,
                       obscureText: model.obscurePassword,
                       decoration: InputDecoration(
+                        prefixIcon: const Icon(Icons.lock_outline),
                         hintText: 'Password',
+                        filled: true,
+                        fillColor: Colors.grey[100],
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
                         suffixIcon: IconButton(
-                          icon: Icon(model.obscurePassword ? Icons.visibility_off : Icons.visibility),
+                          icon: Icon(
+                            model.obscurePassword ? Icons.visibility_off : Icons.visibility,
+                          ),
                           onPressed: model.togglePasswordVisibility,
                         ),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                     ),
-
                     const SizedBox(height: 12),
 
+                    // Forgot Password
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
                         onPressed: model.forgotPassword,
-                        child: const Text('Forgot password?', style: TextStyle(color: Colors.blue)),
+                        child: const Text('Forgot password?'),
                       ),
                     ),
+                    const SizedBox(height: 12),
 
+                    // Sign In Button
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: model.isLoading ? null : () => model.signIn(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.tealAccent[700],
+                          backgroundColor: themeColor,
+                          foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          elevation: 3,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
                         ),
                         child: model.isLoading
                             ? const CircularProgressIndicator(color: Colors.white)
-                            : const Text('Sign In'),
+                            : const Text('Sign In', style: TextStyle(fontSize: 16)),
                       ),
                     ),
+                    const SizedBox(height: 24),
 
-                    const SizedBox(height: 16),
-                    const Text("Or sign in using Social Media.", style: TextStyle(color: Colors.grey)),
+                    const Text('Or sign in with', style: TextStyle(color: Colors.grey)),
                     const SizedBox(height: 12),
-                    
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        IconButton(
-                          icon: SvgPicture.asset('assets/images/google-logo.svg', height: 36, width: 36),
-                          onPressed: () {}, // Add logic if needed
-                        ),
+                        SocialIconButton(assetPath: 'assets/images/google-logo.svg'),
                         const SizedBox(width: 24),
-                        IconButton(
-                          icon: SvgPicture.asset('assets/images/facebook-logo.svg', height: 36, width: 36),
-                          onPressed: () {}, // Add logic if needed
-                        ),
+                        SocialIconButton(assetPath: 'assets/images/facebook-logo.svg'),
                       ],
                     ),
 
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 24),
+
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         const Text("Don't have an account? "),
                         GestureDetector(
-                          onTap: () {
-                            Navigator.pushNamed(context, '/signup');
-                          },
-                          child: const Text("Sign up.", style: TextStyle(color: Colors.blue)),
+                          onTap: () => Navigator.pushNamed(context, '/signup'),
+                          child: const Text(
+                            "Sign up",
+                            style: TextStyle(color: Colors.blue),
+                          ),
                         ),
                       ],
                     ),
@@ -112,6 +145,28 @@ class SignInScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class SocialIconButton extends StatelessWidget {
+  final String assetPath;
+
+  const SocialIconButton({super.key, required this.assetPath});
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: () {}, // TODO: Add social login logic
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: SvgPicture.asset(assetPath, height: 24, width: 24),
       ),
     );
   }
