@@ -18,7 +18,7 @@ class _EditCompetitionScreenState extends State<EditCompetitionScreen> {
   late TextEditingController _dateController;
   late CompetitionType _selectedType;
   late DateTime _selectedDate;
-  final ScrollController _scrollController = ScrollController(); // Scroll controller
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
@@ -77,110 +77,83 @@ class _EditCompetitionScreenState extends State<EditCompetitionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 132, 192, 241),
+      backgroundColor: const Color(0xFFE3F2FD), // Light blue background
       appBar: AppBar(
         title: const Text(
           "Edit Race Event",
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-            fontSize: 24,
-          ),
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
         ),
         centerTitle: true,
         backgroundColor: Colors.blue.shade700,
-        elevation: 0,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: SingleChildScrollView(
-        controller: _scrollController,  // Attach the scroll controller
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.9),
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2),
-                    blurRadius: 10,
-                    offset: Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(20.0),
+        controller: _scrollController,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 600),
+            child: Form(
+              key: _formKey,
+              child: Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 15,
+                      offset: const Offset(0, 10),
+                    ),
+                  ],
+                ),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    // Name field
-                    TextFormField(
+                    const Text(
+                      "Update Competition Details",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Event Name
+                    _buildTextField(
                       controller: _nameController,
-                      decoration: InputDecoration(
-                        labelText: 'Event Name',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        prefixIcon: Icon(Icons.event, color: Colors.blue.shade700),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter an event name';
-                        }
-                        return null;
-                      },
+                      label: "Event Name",
+                      icon: Icons.event,
+                      validatorText: "Please enter an event name",
                     ),
-                    const SizedBox(height: 16),
-                    // Distance field
-                    TextFormField(
+                    const SizedBox(height: 20),
+
+                    // Distance
+                    _buildTextField(
                       controller: _distanceController,
-                      decoration: InputDecoration(
-                        labelText: 'Distance',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        prefixIcon: Icon(Icons.straighten, color: Colors.blue.shade700),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please enter the distance';
-                        }
-                        return null;
-                      },
+                      label: "Distance",
+                      icon: Icons.straighten,
+                      validatorText: "Please enter the distance",
                     ),
-                    const SizedBox(height: 16),
-                    // Date field
+                    const SizedBox(height: 20),
+
+                    // Date
                     TextFormField(
                       controller: _dateController,
-                      decoration: InputDecoration(
-                        labelText: 'Date',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        prefixIcon: Icon(Icons.calendar_today, color: Colors.blue.shade700),
-                      ),
                       readOnly: true,
                       onTap: () => _selectDate(context),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'Please select a date';
-                        }
-                        return null;
-                      },
+                      decoration: _inputDecoration("Date", Icons.calendar_today),
+                      validator: (value) =>
+                          value == null || value.isEmpty ? 'Please select a date' : null,
                     ),
-                    const SizedBox(height: 16),
-                    // Competition Type dropdown
+                    const SizedBox(height: 20),
+
+                    // Dropdown
                     DropdownButtonFormField<CompetitionType>(
                       value: _selectedType,
-                      decoration: InputDecoration(
-                        labelText: 'Competition Type',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        prefixIcon: Icon(Icons.directions_run, color: Colors.blue.shade700),
-                      ),
+                      decoration: _inputDecoration("Competition Type", Icons.directions_run),
                       items: CompetitionType.values.map((type) {
                         return DropdownMenuItem(
                           value: type,
@@ -189,54 +162,37 @@ class _EditCompetitionScreenState extends State<EditCompetitionScreen> {
                       }).toList(),
                       onChanged: (value) {
                         if (value != null) {
-                          setState(() {
-                            _selectedType = value;
-                          });
-                          // Scroll to the next section (or move as required)
+                          setState(() => _selectedType = value);
                           _scrollController.animateTo(
-                            200.0, // Adjust scroll position based on where you want to move
-                            duration: Duration(milliseconds: 300),
+                            200.0,
+                            duration: const Duration(milliseconds: 300),
                             curve: Curves.easeInOut,
                           );
                         }
                       },
-                      validator: (value) {
-                        if (value == null) {
-                          return 'Please select a competition type';
-                        }
-                        return null;
-                      },
+                      validator: (value) =>
+                          value == null ? 'Please select a competition type' : null,
                     ),
-                    const SizedBox(height: 24),
-                    // Save and Cancel buttons
+                    const SizedBox(height: 30),
+
+                    // Buttons
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         TextButton(
                           onPressed: () => Navigator.pop(context),
-                          child: Text(
-                            'Cancel',
-                            style: TextStyle(
-                              color: Colors.grey.shade700,
-                              fontSize: 16,
-                            ),
-                          ),
+                          child: const Text("Cancel", style: TextStyle(fontSize: 16)),
                         ),
-                        const SizedBox(width: 16),
                         ElevatedButton(
                           onPressed: _saveCompetition,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.blue.shade700,
-                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                           ),
-                          child: const Text(
-                            'Save',
-                            style: TextStyle(fontSize: 16),
-                          ),
+                          child: const Text("Save", style: TextStyle(fontSize: 16)),
                         ),
                       ],
                     ),
@@ -247,6 +203,32 @@ class _EditCompetitionScreenState extends State<EditCompetitionScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    required IconData icon,
+    required String validatorText,
+  }) {
+    return TextFormField(
+      controller: controller,
+      decoration: _inputDecoration(label, icon),
+      validator: (value) => value == null || value.isEmpty ? validatorText : null,
+    );
+  }
+
+  InputDecoration _inputDecoration(String label, IconData icon) {
+    return InputDecoration(
+      labelText: label,
+      prefixIcon: Icon(icon, color: Colors.blue.shade700),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      filled: true,
+      fillColor: Colors.blue[50],
+      contentPadding: const EdgeInsets.symmetric(vertical: 18, horizontal: 16),
     );
   }
 }
