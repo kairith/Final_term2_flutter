@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_final/models/competition.dart';
-
-import 'package:flutter_final/screens/dashboard/admin_dashboard.dart'; // Make sure this file exists
+import 'package:flutter_final/screens/dashboard/admin_dashboard.dart';
 
 class RaceScreen extends StatefulWidget {
   const RaceScreen({super.key});
@@ -31,8 +30,8 @@ class _RaceScreenState extends State<RaceScreen> {
         ),
         centerTitle: true,
         backgroundColor: Colors.blue.shade700,
-        elevation: 0,
         foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: Container(
         decoration: BoxDecoration(
@@ -44,14 +43,20 @@ class _RaceScreenState extends State<RaceScreen> {
         ),
         child: Column(
           children: [
-            // Header section
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Container(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.all(20.0),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.9),
-                  borderRadius: BorderRadius.circular(16),
+                  color: Colors.white.withOpacity(0.95),
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,7 +81,6 @@ class _RaceScreenState extends State<RaceScreen> {
                 ),
               ),
             ),
-            // Single race event card
             Expanded(
               child: Center(
                 child: GestureDetector(
@@ -91,23 +95,23 @@ class _RaceScreenState extends State<RaceScreen> {
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
                     child: Card(
-                      elevation: 10,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
                       ),
+                      elevation: 12,
                       child: Padding(
                         padding: const EdgeInsets.all(20.0),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // Circular image placeholder
                             Container(
                               width: 80,
                               height: 80,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.blue.shade700, width: 2),
-                                color: Colors.grey.shade300,
+                                border: Border.all(
+                                    color: Colors.blue.shade700, width: 2),
+                                color: Colors.grey.shade200,
                               ),
                               child: Center(
                                 child: Icon(
@@ -121,8 +125,7 @@ class _RaceScreenState extends State<RaceScreen> {
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 16),
-                            // Text content
+                            const SizedBox(width: 20),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -152,7 +155,7 @@ class _RaceScreenState extends State<RaceScreen> {
                                         size: 16,
                                         color: Colors.blue.shade700,
                                       ),
-                                      const SizedBox(width: 4),
+                                      const SizedBox(width: 6),
                                       Text(
                                         competition.date,
                                         style: TextStyle(
