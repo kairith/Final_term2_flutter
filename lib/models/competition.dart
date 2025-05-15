@@ -7,7 +7,7 @@ enum CompetitionType {
 }
 
 class Competition {
-  // Unique identifier for the competition
+  
   final String name; // Name of the competition
   final String distance; // Distance of the competition (e.g., "5km")
   final String date; // Date of the competition (e.g., "2025-04-20")

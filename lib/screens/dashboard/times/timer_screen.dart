@@ -161,7 +161,7 @@ class _TimerWithLapState extends State<TimerWithLap> {
     await _fetchPlayers();
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Race saved successfully!")),
+      const SnackBar(content: Text("Results saved successfully!")),
     );
   }
 
