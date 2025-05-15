@@ -20,7 +20,8 @@ class _TimerWithLapState extends State<TimerWithLap> {
   List<Player> _players = [];
   Set<String> _assignedBibs = {}; // Track assigned bib numbers
 
-  static const String baseUrl = 'https://sporttrackingapp-default-rtdb.asia-southeast1.firebasedatabase.app';
+  static const String baseUrl =
+      'https://sporttrackingapp-default-rtdb.asia-southeast1.firebasedatabase.app';
 
   @override
   void initState() {
@@ -34,14 +35,18 @@ class _TimerWithLapState extends State<TimerWithLap> {
       final response = await http.get(uri);
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body) as Map<String, dynamic>;
+        final Map<String, dynamic> data =
+            json.decode(response.body) as Map<String, dynamic>;
         setState(() {
-          _players = data.entries.map((entry) {
-            return Player.fromMap(entry.key, entry.value);
-          }).toList();
+          _players =
+              data.entries.map((entry) {
+                return Player.fromMap(entry.key, entry.value);
+              }).toList();
         });
       } else {
-        print('Failed to fetch players: ${response.statusCode}, ${response.body}');
+        print(
+          'Failed to fetch players: ${response.statusCode}, ${response.body}',
+        );
         throw Exception('Failed to fetch players: ${response.statusCode}');
       }
     } catch (e) {
@@ -81,25 +86,33 @@ class _TimerWithLapState extends State<TimerWithLap> {
     });
   }
 
-  Future<void> _assignBib(Duration lapTime) async {
-    String? selectedBib;
+  Future<void> _assignBib(Duration lapTime, {String? currentBib}) async {
+    String? selectedBib = currentBib;
 
     await showDialog<String>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Assign Bib Number"),
+          title: Text(
+            currentBib == null ? "Assign Bib Number" : "Edit Bib Number",
+          ),
           content: DropdownButtonFormField<String>(
             hint: const Text("Select a player"),
             value: selectedBib,
-            items: _players
-                .where((player) => !_assignedBibs.contains(player.bibNumber)) // Filter out already assigned bibs
-                .map((player) {
-              return DropdownMenuItem<String>(
-                value: player.bibNumber,
-                child: Text(player.bibNumber),
-              );
-            }).toList(),
+            items:
+                _players
+                    .where(
+                      (player) =>
+                          !_assignedBibs.contains(player.bibNumber) ||
+                          player.bibNumber == currentBib,
+                    ) // Allow current bib
+                    .map((player) {
+                      return DropdownMenuItem<String>(
+                        value: player.bibNumber,
+                        child: Text(player.bibNumber),
+                      );
+                    })
+                    .toList(),
             onChanged: (value) {
               selectedBib = value;
             },
@@ -113,7 +126,7 @@ class _TimerWithLapState extends State<TimerWithLap> {
               onPressed: () {
                 Navigator.of(context).pop(selectedBib);
               },
-              child: const Text("Assign"),
+              child: const Text("Save"),
             ),
           ],
         );
@@ -121,6 +134,11 @@ class _TimerWithLapState extends State<TimerWithLap> {
     ).then((value) {
       if (value != null) {
         setState(() {
+          // Remove the old bib from _assignedBibs if it exists
+          if (currentBib != null) {
+            _assignedBibs.remove(currentBib);
+          }
+          // Update with the new bib
           _lapAssignments[lapTime] = value;
           _assignedBibs.add(value);
         });
@@ -151,7 +169,11 @@ class _TimerWithLapState extends State<TimerWithLap> {
       } catch (e) {
         print('Error finding or updating player: $e');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error saving race.  Could not find player with bib number $bib")),
+          SnackBar(
+            content: Text(
+              "Error saving race.  Could not find player with bib number $bib",
+            ),
+          ),
         );
         return;
       }
@@ -165,7 +187,10 @@ class _TimerWithLapState extends State<TimerWithLap> {
     );
   }
 
-  Future<void> _updatePlayerFinishTime(Player player, Duration finishTime) async {
+  Future<void> _updatePlayerFinishTime(
+    Player player,
+    Duration finishTime,
+  ) async {
     final updatedPlayer = player.copyWith(finishTime: finishTime);
     final uri = Uri.parse('$baseUrl/players/${player.id}.json');
     try {
@@ -174,7 +199,9 @@ class _TimerWithLapState extends State<TimerWithLap> {
         body: json.encode(updatedPlayer.toMap()),
       );
       if (response.statusCode != 200) {
-        print('Failed to update player: ${response.statusCode}, ${response.body}');
+        print(
+          'Failed to update player: ${response.statusCode}, ${response.body}',
+        );
         throw Exception('Failed to update player');
       }
     } catch (e) {
@@ -292,18 +319,22 @@ class _TimerWithLapState extends State<TimerWithLap> {
                             fontSize: 18,
                           ),
                         ),
-                        trailing: bib == null
-                            ? IconButton(
-                                icon: const Icon(Icons.person_add, color: Colors.white),
-                                onPressed: () => _assignBib(lapTime),
-                              )
-                            : Text(
-                                "Bib: $bib",
-                                style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                ),
-                              ),
+                        trailing: GestureDetector(
+                          onTap: () => _assignBib(lapTime, currentBib: bib),
+                          child:
+                              bib == null
+                                  ? const Icon(
+                                    Icons.person_add,
+                                    color: Colors.white,
+                                  )
+                                  : Text(
+                                    "Bib: $bib",
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 18,
+                                    ),
+                                  ),
+                        ),
                       ),
                     );
                   },
