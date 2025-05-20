@@ -34,14 +34,14 @@ class _EditPlayerScreenState extends State<EditPlayerScreen> {
 void _save() async {
   if (_formKey.currentState!.validate()) {
     Player updatedPlayer = Player(
-      id: widget.player.id, // Include the existing ID
+      id: widget.player.id,
       name: nameController.text,
       bibNumber: bibController.text,
     );
 
     try {
       await _repository.updatePlayer(updatedPlayer.id, updatedPlayer); // Update Firebase
-      Navigator.pop(context, updatedPlayer); // Return the updated player
+      Navigator.pop(context, updatedPlayer);
     } catch (e) {
       // Handle error
       ScaffoldMessenger.of(context).showSnackBar(

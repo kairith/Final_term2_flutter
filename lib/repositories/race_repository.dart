@@ -11,7 +11,6 @@ class FirebaseRaceRepository {
   static const String allCompetitionsUrl = '$baseUrl/$competitionsCollection.json';
   static const String allPlayersUrl = '$baseUrl/$playersCollection.json';
 
-  // Get all competitions
   Future<List<Map<String, dynamic>>> getCompetitions() async {
     final uri = Uri.parse(allCompetitionsUrl);
     final response = await http.get(uri);
@@ -36,7 +35,7 @@ class FirebaseRaceRepository {
 
     final data = json.decode(response.body) as Map<String, dynamic>;
     return data.entries.map((entry) {
-      return Player.fromMap(entry.key, entry.value); // Use entry.key for ID
+      return Player.fromMap(entry.key, entry.value);
     }).toList();
   }
 
@@ -52,9 +51,10 @@ class FirebaseRaceRepository {
     if (response.statusCode != HttpStatus.ok && response.statusCode != HttpStatus.created) {
       throw Exception('Failed to add player: ${response.body}');
     }
-
+    
+    // Firebase generates a unique key as the ID
     final data = json.decode(response.body);
-    return data['name']; // Firebase generates a unique key as the ID
+    return data['name']; 
   }
 
 

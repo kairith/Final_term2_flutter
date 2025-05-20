@@ -77,7 +77,7 @@ class _EditCompetitionScreenState extends State<EditCompetitionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFE3F2FD), // Light blue background
+      backgroundColor: const Color(0xFFE3F2FD),
       appBar: AppBar(
         title: const Text(
           "Edit Race Event",

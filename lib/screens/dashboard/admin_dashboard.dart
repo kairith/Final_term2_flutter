@@ -229,17 +229,6 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
                               }
                             },
                           ),
-                          // IconButton(
-                          //   icon: const Icon(
-                          //     Icons.delete,
-                          //     color: Colors.red,
-                          //   ),
-                          //   onPressed: () {
-                          //     setState(() {
-                          //       races.remove(race);
-                          //     });
-                          //   },
-                          // ),
                         ],
                       ),
                     ),
@@ -249,17 +238,6 @@ class _AdminRaceOverviewScreenState extends State<AdminRaceOverviewScreen>
             ),
           ),
         ),
-        // Positioned(
-        //   bottom: 50,
-        //   right: 30,
-        //   child: FloatingActionButton(
-        //     onPressed: () {
-        //       // Add race functionality here
-        //     },
-        //     backgroundColor: Colors.white,
-        //     child: const Icon(Icons.add, color: Colors.black),
-        //   ),
-        // ),
       ],
     );
   }

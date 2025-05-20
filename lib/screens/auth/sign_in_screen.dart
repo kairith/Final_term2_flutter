@@ -58,7 +58,6 @@ class SignInScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
 
-                    // Password Field
                     TextField(
                       controller: model.passwordController,
                       obscureText: model.obscurePassword,
@@ -80,7 +79,6 @@ class SignInScreen extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 12),
-
                     // Forgot Password
                     Align(
                       alignment: Alignment.centerRight,
@@ -149,7 +147,6 @@ class SignInScreen extends StatelessWidget {
     );
   }
 }
-
 class SocialIconButton extends StatelessWidget {
   final String assetPath;
 
@@ -158,7 +155,7 @@ class SocialIconButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {}, // TODO: Add social login logic
+      onTap: () {},
       borderRadius: BorderRadius.circular(30),
       child: Container(
         padding: const EdgeInsets.all(12),
