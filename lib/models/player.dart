@@ -1,8 +1,8 @@
 class Player {
-  final String id; // Ensure ID is present
+  final String id;
   final String name;
   final String bibNumber;
-  final Duration? finishTime; // Optional finish time
+  final Duration? finishTime;
 
   Player({
     required this.id,
@@ -15,7 +15,7 @@ class Player {
     return {
       'name': name,
       'bibNumber': bibNumber,
-      'finishTime': finishTime?.inMilliseconds, // Save as milliseconds for easier storage
+      'finishTime': finishTime?.inMilliseconds,
     };
   }
   Player copyWith({
@@ -39,7 +39,7 @@ class Player {
       bibNumber: map['bibNumber'],
       finishTime: map['finishTime'] != null
           ? Duration(milliseconds: map['finishTime'])
-          : null, // Convert milliseconds back to Duration
+          : null,
     );
   }
 }
